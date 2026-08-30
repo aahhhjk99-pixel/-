@@ -48,7 +48,7 @@ export default function LoginScreen() {
           await supabase.from('profiles').update({ role: 'admin' }).eq('id', (profileData as any).id);
         }
         show('تم تسجيل الدخول كأدمن', 'success');
-        router.replace('/(tabs)');
+        router.replace('/users');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
         router.replace('/(tabs)');
