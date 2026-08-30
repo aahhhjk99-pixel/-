@@ -48,10 +48,10 @@ export default function LoginScreen() {
           await supabase.from('profiles').update({ role: 'admin' }).eq('id', (profileData as any).id);
         }
         show('تم تسجيل الدخول كأدمن', 'success');
-        window.location.href = '/users';
-      } else {
-        show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/users');
+router.replace('/users');
+} else {
+show('تم تسجيل الدخول بنجاح', 'success');
+router.replace('/users');
       }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء تسجيل الدخول');
