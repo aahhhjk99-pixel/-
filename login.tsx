@@ -51,7 +51,7 @@ export default function LoginScreen() {
         router.replace('/users');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tabs)');
+        router.replace('/users');
       }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء تسجيل الدخول');
