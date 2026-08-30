@@ -21,15 +21,21 @@ export default function AdminUsersScreen() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
 
   const loadUsers = useCallback(async () => {
-    let query = supabase.from('profiles').select('*');
-    if (roleFilter !== 'all') {
-      query = query.eq('role', roleFilter);
+    try {
+      let query = supabase.from('profiles').select('*');
+      if (roleFilter !== 'all') {
+        query = query.eq('role', roleFilter);
+      }
+      query = query.order('created_at', { ascending: false });
+      const { data, error } = await query;
+      if (error) throw error;
+      setUsers((data as Profile[]) || []);
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    query = query.order('created_at', { ascending: false });
-    const { data } = await query;
-    setUsers((data as Profile[]) || []);
-    setLoading(false);
-    setRefreshing(false);
   }, [roleFilter]);
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
@@ -37,12 +43,14 @@ export default function AdminUsersScreen() {
   const filteredUsers = users.filter((u) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return u.full_name.toLowerCase().includes(q) || (u.phone || '').includes(q);
+    const name = (u.full_name || '').toLowerCase();
+    const phone = u.phone || '';
+    return name.includes(q) || phone.includes(q);
   });
 
   const handleBan = (user: Profile) => {
     const action = user.account_status === 'banned' ? 'فك الحظر' : 'حظر';
-    Alert.alert(action, `هل تريد ${action} "${user.full_name}"؟`, [
+    Alert.alert(action, `هل تريد ${action} "${user.full_name || 'هذا الحساب'}"؟`, [
       { text: 'إلغاء', style: 'cancel' },
       {
         text: action,
@@ -66,16 +74,16 @@ export default function AdminUsersScreen() {
   const handleDelete = (user: Profile) => {
     Alert.alert(
       'حذف حساب',
-      `هل أنت متأكد من حذف حساب "${user.full_name}"؟ لا يمكن التراجع عن هذا الإجراء.`,
+      `هل أنت متأكد من حذف حساب "${user.full_name || 'هذا الحساب'}"؟ لا يمكن التراجع عن هذا الإجراء.`,
       [
         { text: 'إلغاء', style: 'cancel' },
         {
           text: 'حذف',
           style: 'destructive',
           onPress: async () => {
-            const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-            if (authError) {
-              Alert.alert('خطأ', authError.message);
+            const { error } = await supabase.from('profiles').delete().eq('id', user.id);
+            if (error) {
+              Alert.alert('خطأ', error.message);
             } else {
               loadUsers();
             }
@@ -92,7 +100,7 @@ export default function AdminUsersScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => router.replace('/')} style={styles.backBtn}>
             <ChevronLeft color={colors.text} size={24} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>إدارة الحسابات</Text>
@@ -152,7 +160,7 @@ export default function AdminUsersScreen() {
                     )}
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>{user.full_name}</Text>
+                    <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>{user.full_name || 'بدون اسم'}</Text>
                     <Text style={[styles.userPhone, { color: colors.subtext }]}>{user.phone || 'لا يوجد رقم'}</Text>
                     <View style={styles.userMeta}>
                       <View style={[styles.roleBadge, { backgroundColor: rColor + '20' }]}>
@@ -172,7 +180,7 @@ export default function AdminUsersScreen() {
                         </View>
                       )}
                     </View>
-                    <Text style={[styles.userDate, { color: colors.subtext }]}>عضو منذ {formatDate(user.created_at)}</Text>
+                    <Text style={[styles.userDate, { color: colors.subtext }]}>عضو منذ {user.created_at ? formatDate(user.created_at) : 'غير محدد'}</Text>
                   </View>
                 </View>
                 {user.role !== 'admin' && (
