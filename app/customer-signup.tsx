@@ -42,15 +42,18 @@ export default function CustomerSignupScreen() {
 
   const handleSignup = async () => {
     setError('');
-    if (!fullName.trim()) { setError('الرجاء إدخال الاسم الكامل'); return; }
-    if (!phone.trim() || phone.trim().length < 8) { setError('الرجاء إدخال رقم هاتف صحيح'); return; }
+    const cleanPhone = phone.trim();
+    const cleanName = fullName.trim();
+
+    if (!cleanName) { setError('الرجاء إدخال الاسم الكامل'); return; }
+    if (!cleanPhone || cleanPhone.length < 8) { setError('الرجاء إدخال رقم هاتف صحيح'); return; }
     if (!password.trim() || password.length < 6) { setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
     if (!lat || !lng) { setError('الرجاء تحديد موقعك الجغرافي'); return; }
     if (!agreed) { setError('الرجاء الموافقة على الشروط والأحكام'); return; }
 
     setLoading(true);
     try {
-      const email = `${phone}@services.ly`;
+      const email = `${cleanPhone}@services.ly`;
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -63,8 +66,8 @@ export default function CustomerSignupScreen() {
       const user = authData.user;
       const { error: profileError } = await supabase.from('profiles').insert({
         id: user.id,
-        full_name: fullName.trim(),
-        phone: phone.trim(),
+        full_name: cleanName,
+        phone: cleanPhone,
         role: 'customer',
         location_lat: lat,
         location_lng: lng,
@@ -75,7 +78,7 @@ export default function CustomerSignupScreen() {
       if (profileError) throw new Error(profileError.message);
 
       Alert.alert('تم', `تم إنشاء حسابك بنجاح! حصلت على خصم ${PROMO_CUSTOMER_DISCOUNT} ${CURRENCY} على أول صيانة.`);
-      router.replace('/(tabs)');
+      router.replace('/');
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء إنشاء الحساب');
     } finally {
@@ -178,14 +181,23 @@ export default function CustomerSignupScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.termsRow} onPress={() => setShowTerms(true)}>
-          <View style={[styles.checkbox, agreed && [styles.checkboxActive, { backgroundColor: colors.primary, borderColor: colors.primary }]]}>
+        <View style={styles.termsRow}>
+          <TouchableOpacity
+            style={[styles.checkbox, agreed && [styles.checkboxActive, { backgroundColor: colors.primary, borderColor: colors.primary }]]}
+            onPress={() => setAgreed(!agreed)}
+          >
             {agreed && <Check color="#fff" size={16} />}
-          </View>
+          </TouchableOpacity>
           <Text style={[styles.termsTextSmall, { color: colors.text }]}>
-            أوافق على الشروط والأحكام
+            أوافق على{' '}
+            <Text
+              style={{ color: colors.primary, fontFamily: 'Cairo-Bold', textDecorationLine: 'underline' }}
+              onPress={() => setShowTerms(true)}
+            >
+              الشروط والأحكام
+            </Text>
           </Text>
-        </TouchableOpacity>
+        </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -223,7 +235,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo-Bold',
     fontSize: 24,
     marginBottom: 16,
-  marginTop: 8,
+    marginTop: 8,
   },
   body: { padding: 24, paddingBottom: 40 },
   promoCard: {
