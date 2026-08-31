@@ -6,14 +6,21 @@ import TechnicianHome from '../components/TechnicianHome';
 
 export default function Index() {
   const auth = useAuth() as any;
-  const { session, profile, isLoading, loading } = auth || {};
 
-  // في حالة جاري المعالجة، لا يتم عرض أي عجلة تحميل ويتم الانتقال فوراً
-  if (isLoading || loading) {
+  // 1. حماية في حال كان الـ Auth غير معرف لا ينهار التطبيق بل يوجه مباشرة للتسجيل
+  if (!auth) {
+    return <Redirect href="/login" />;
+  }
+
+  const { session, profile, isLoading, loading } = auth;
+  const isAuthLoading = isLoading || loading;
+
+  // 2. إذا كان جاري التحقق من الجلسة ولم تكتمل بعد، انتظر ثوانٍ معدودة دون تجميد
+  if (isAuthLoading) {
     return null;
   }
 
-  // عند وجود جلسة تسجيل دخول: التوجيه حسب دور المستخدم
+  // 3. في حالة تسجيل الدخول: التوجيه حسب نوع الحساب
   if (session) {
     const role = profile?.role || 'customer';
 
@@ -28,6 +35,6 @@ export default function Index() {
     return <CustomerHome />;
   }
 
-  // في حالة عدم تسجيل الدخول: توجيه فوري لصفحة الدخول
+  // 4. التوجيه المباشر لصفحة الدخول في حالة عدم وجود جلسة
   return <Redirect href="/login" />;
 }
