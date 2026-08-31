@@ -4,7 +4,8 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Phone, Star } from 'lucide-react-native';
+import { ChevronRight, Phone, Star, Check } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme-context';
 import { useToast } from '@/lib/toast';
@@ -16,6 +17,7 @@ export default function LoginScreen() {
   const { show } = useToast();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,6 +39,8 @@ export default function LoginScreen() {
       });
 
       if (signInError) throw new Error('رقم الهاتف أو كلمة المرور غير صحيحة');
+
+      await AsyncStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
 
       if (cleanPhone === ADMIN_PHONE) {
         const { data: profileData } = await supabase
@@ -105,6 +109,17 @@ export default function LoginScreen() {
             secureTextEntry
           />
         </View>
+
+        <TouchableOpacity
+          style={styles.rememberContainer}
+          onPress={() => setRememberMe(!rememberMe)}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+            {rememberMe && <Check color="#fff" size={14} strokeWidth={3} />}
+          </View>
+          <Text style={[styles.rememberText, { color: colors.text }]}>تذكرني على هذا الجهاز</Text>
+        </TouchableOpacity>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -201,6 +216,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Cairo-Regular',
     fontSize: 16,
     textAlign: 'left',
+  },
+  rememberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 10,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#94a3b8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  rememberText: {
+    fontFamily: 'Cairo-Medium',
+    fontSize: 14,
   },
   errorText: {
     fontFamily: 'Cairo-Regular',
