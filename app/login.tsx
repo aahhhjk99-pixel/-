@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Phone, Star, Check } from 'lucide-react-native';
@@ -68,10 +73,10 @@ export default function LoginScreen() {
         router.replace('/admin');
       } else if (userRole === 'technician') {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tech)/');
+        router.replace('/(tech)');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tabs)/');
+        router.replace('/(tabs)');
       }
 
     } catch (err: any) {
