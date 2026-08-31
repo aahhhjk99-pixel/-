@@ -10,15 +10,26 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Phone, Star, Check } from 'lucide-react-native';
-import { supabase } from '@/lib/supabase';
-import { useTheme } from '@/lib/theme-context';
-import { useToast } from '@/lib/toast';
-import { BRAND_NAME, BRAND_LOGO } from '@/lib/constants';
-import { ADMIN_PHONE } from '@/lib/auth';
+import { supabase } from '../lib/supabase';
+import { useTheme } from '../lib/theme-context';
+import { useToast } from '../lib/toast';
+import { BRAND_NAME, BRAND_LOGO } from '../lib/constants';
+import { ADMIN_PHONE } from '../lib/auth';
 
 export default function LoginScreen() {
-  const { colors } = useTheme();
-  const { show } = useToast();
+  // حماية الثيم والتراست من الانهيار في حال عدم وجود Provider
+  const theme = useTheme();
+  const colors = theme?.colors || {
+    bg: '#ffffff',
+    text: '#0f172a',
+    subtext: '#64748b',
+    cardBg: '#f8fafc',
+    inputBorder: '#e2e8f0',
+  };
+
+  const toast = useToast();
+  const show = toast?.show || ((msg: string) => console.log(msg));
+
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -44,8 +55,12 @@ export default function LoginScreen() {
 
       if (signInError) throw new Error('رقم الهاتف أو كلمة المرور غير صحيحة');
 
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
+        }
+      } catch (e) {
+        // حماية الأجهزة التي لا تدعم localStorage
       }
 
       const userId = authData.user?.id;
@@ -68,13 +83,12 @@ export default function LoginScreen() {
         }
       }
 
-      // التوجيه المباشر حسب أسماء الملفات في مشروعك
       if (userRole === 'admin') {
         show('تم تسجيل الدخول كأدمن', 'success');
-        router.replace('/admin'); // يوجه لملف app/admin.tsx
+        router.replace('/admin');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/'); // يوجه لملف app/index.tsx
+        router.replace('/');
       }
 
     } catch (err: any) {
@@ -99,7 +113,7 @@ export default function LoginScreen() {
           <Star color="#2563eb" size={32} fill="#2563eb" />
         </View>
 
-        <Text style={[styles.brandName, { color: colors.text }]}>{BRAND_NAME} {BRAND_LOGO}</Text>
+        <Text style={[styles.brandName, { color: colors.text }]}>{BRAND_NAME || 'تطبيقي'} {BRAND_LOGO || ''}</Text>
         <Text style={[styles.subtitle, { color: colors.subtext }]}>أدخل رقم هاتفك وكلمة المرور للمتابعة</Text>
 
         <View style={styles.inputGroup}>
