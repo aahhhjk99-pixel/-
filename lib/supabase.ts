@@ -5,15 +5,11 @@ import { Platform } from 'react-native';
 
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  '';
+  'https://ehrkdqsfelynlqlbmfhq.supabase.co';
 
 const supabaseAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  '';
+  'sb_publishable_WAA5mbMiPpwCm4-sctJ6qA_gMQ38er9';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
