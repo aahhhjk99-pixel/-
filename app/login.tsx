@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Phone, Star, Check } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme-context';
 import { useToast } from '@/lib/toast';
@@ -40,7 +39,9 @@ export default function LoginScreen() {
 
       if (signInError) throw new Error('رقم الهاتف أو كلمة المرور غير صحيحة');
 
-      await AsyncStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
+      }
 
       if (cleanPhone === ADMIN_PHONE) {
         const { data: profileData } = await supabase
