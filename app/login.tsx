@@ -68,15 +68,13 @@ export default function LoginScreen() {
         }
       }
 
+      // التوجيه المباشر حسب أسماء الملفات في مشروعك
       if (userRole === 'admin') {
         show('تم تسجيل الدخول كأدمن', 'success');
-        router.replace('/admin');
-      } else if (userRole === 'technician') {
-        show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tech)');
+        router.replace('/admin'); // يوجه لملف app/admin.tsx
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tabs)');
+        router.replace('/'); // يوجه لملف app/index.tsx
       }
 
     } catch (err: any) {
