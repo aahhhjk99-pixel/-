@@ -43,7 +43,6 @@ export default function LoginScreen() {
         window.localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
       }
 
-      // جلب بيانات ملف المستخدم
       const userId = authData.user?.id;
       let userRole = 'customer';
 
@@ -64,7 +63,7 @@ export default function LoginScreen() {
         }
       }
 
-      // التوجيه المباشر حسب نوع الحساب
+      // التوجيه الصحيح والمباشر حسب نوع الحساب
       if (userRole === 'admin') {
         show('تم تسجيل الدخول كأدمن', 'success');
         router.replace('/admin');
@@ -73,7 +72,7 @@ export default function LoginScreen() {
         router.replace('/(tech)');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tabs)');
+        router.replace('/');
       }
 
     } catch (err: any) {
