@@ -5,13 +5,14 @@ import {
 } from 'react-native';
 import {
   Users, Wrench, ClipboardList, DollarSign, AlertTriangle, TrendingUp,
-  ChevronLeft, ShieldCheck, Clock, Shield, Settings, FileText,
+  ChevronLeft, ShieldCheck, Clock, Shield, Settings,
 } from 'lucide-react-native';
 import { useTheme } from '@/lib/theme-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast';
 import { formatCurrency, formatDateTime } from '@/lib/format';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/lib/constants';
+import { ADMIN_PHONE } from '@/lib/auth';
 import type { Order, Dispute, Profile } from '@/types/database';
 
 export default function AdminDashboardScreen() {
@@ -98,8 +99,29 @@ export default function AdminDashboardScreen() {
         return;
       }
 
-      setAuthChecking(false);
-      loadData();
+      // جلب بيانات الملف الشخصي لتحديد الواجهة المناسبة
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, phone')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (profile?.role === 'customer') {
+        router.replace('/(tabs)');
+        return;
+      }
+
+      if (profile?.role === 'technician') {
+        router.replace('/(tech)');
+        return;
+      }
+
+      if (profile?.role === 'admin' || profile?.phone === ADMIN_PHONE) {
+        setAuthChecking(false);
+        loadData();
+      } else {
+        router.replace('/(tabs)');
+      }
     };
 
     checkUserRole();
