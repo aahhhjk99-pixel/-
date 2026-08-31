@@ -63,16 +63,16 @@ export default function LoginScreen() {
         }
       }
 
-      // التوجيه الصحيح والمباشر حسب نوع الحساب
+      // توجيه دقيق بمسارات سليمة 100% للويب
       if (userRole === 'admin') {
         show('تم تسجيل الدخول كأدمن', 'success');
         router.replace('/admin');
       } else if (userRole === 'technician') {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/(tech)');
+        router.replace('/(tech)/');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/');
+        router.replace('/(tabs)/');
       }
 
     } catch (err: any) {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 2,
     borderColor: '#94a3b8',
-    justifyContent: 'center',
+    justify.content: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
