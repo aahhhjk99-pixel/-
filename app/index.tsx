@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuth } from '../lib/auth';
 import CustomerHome from '../components/CustomerHome';
@@ -7,7 +8,7 @@ import TechnicianHome from '../components/TechnicianHome';
 export default function Index() {
   const auth = useAuth() as any;
 
-  // 1. حماية في حال كان الـ Auth غير معرف لا ينهار التطبيق بل يوجه مباشرة للتسجيل
+  // 1. إذا لم يكن Auth معرفاً، توجيه مباشر للدخول
   if (!auth) {
     return <Redirect href="/login" />;
   }
@@ -15,26 +16,24 @@ export default function Index() {
   const { session, profile, isLoading, loading } = auth;
   const isAuthLoading = isLoading || loading;
 
-  // 2. إذا كان جاري التحقق من الجلسة ولم تكتمل بعد، انتظر ثوانٍ معدودة دون تجميد
+  // 2. بدلاً من return null (التي تسبب الشاشة البيضاء)، نعرض نصاً لمعرفة هل هو عالق هنا
   if (isAuthLoading) {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <Text style={{ fontSize: 18, color: '#000' }}>جاري التحقق من الحساب...</Text>
+      </View>
+    );
   }
 
-  // 3. في حالة تسجيل الدخول: التوجيه حسب نوع الحساب
+  // 3. توجيه الحسابات المسجلة
   if (session) {
     const role = profile?.role || 'customer';
 
-    if (role === 'admin') {
-      return <Redirect href="/admin" />;
-    }
-
-    if (role === 'technician') {
-      return <TechnicianHome />;
-    }
-
+    if (role === 'admin') return <Redirect href="/admin" />;
+    if (role === 'technician') return <TechnicianHome />;
     return <CustomerHome />;
   }
 
-  // 4. التوجيه المباشر لصفحة الدخول في حالة عدم وجود جلسة
+  // 4. توجيه لصفحة الدخول
   return <Redirect href="/login" />;
 }
