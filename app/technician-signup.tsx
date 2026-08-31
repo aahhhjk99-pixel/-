@@ -34,7 +34,7 @@ export default function TechnicianSignupScreen() {
           setLng(pos.coords.longitude);
           setAddress(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
         },
-        () => setError('تعذر الحصول على الموقع'),
+        () => setError('تعذر الحصول على الموقع. تأكد من تفعيل GPS'),
         { enableHighAccuracy: true, timeout: 10000 }
       );
     } else {
@@ -72,8 +72,11 @@ export default function TechnicianSignupScreen() {
 
   const handleSignup = async () => {
     setError('');
-    if (!fullName.trim()) { setError('الرجاء إدخال الاسم الكامل'); return; }
-    if (!phone.trim() || phone.trim().length < 8) { setError('الرجاء إدخال رقم هاتف صحيح'); return; }
+    const cleanPhone = phone.trim();
+    const cleanName = fullName.trim();
+
+    if (!cleanName) { setError('الرجاء إدخال الاسم الكامل'); return; }
+    if (!cleanPhone || cleanPhone.length < 8) { setError('الرجاء إدخال رقم هاتف صحيح'); return; }
     if (!password.trim() || password.length < 6) { setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
     if (!specialty) { setError('الرجاء اختيار التخصص'); return; }
     if (!lat || !lng) { setError('الرجاء تحديد موقعك الجغرافي'); return; }
@@ -83,7 +86,7 @@ export default function TechnicianSignupScreen() {
 
     setLoading(true);
     try {
-      const email = `${phone}@services.ly`;
+      const email = `${cleanPhone}@services.ly`;
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -96,8 +99,8 @@ export default function TechnicianSignupScreen() {
       const user = authData.user;
       const { error: profileError } = await supabase.from('profiles').insert({
         id: user.id,
-        full_name: fullName.trim(),
-        phone: phone.trim(),
+        full_name: cleanName,
+        phone: cleanPhone,
         role: 'technician',
         location_lat: lat,
         location_lng: lng,
@@ -118,7 +121,6 @@ export default function TechnicianSignupScreen() {
 
       if (walletError) throw new Error(walletError.message);
 
-      // Record the signup bonus in the financial ledger
       const ledgerId = crypto.randomUUID();
       await supabase.from('financial_ledger').insert({
         transaction_id: ledgerId,
@@ -135,7 +137,7 @@ export default function TechnicianSignupScreen() {
         'تم',
         `تم إنشاء حسابك بنجاح! تم إضافة ${PROMO_TECHNICIAN_BONUS} ${CURRENCY} رصيد مجاني إلى محفظتك. حسابك قيد المراجعة من قبل الأدمن.`
       );
-      router.replace('/(tabs)');
+      router.replace('/');
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء إنشاء الحساب');
     } finally {
@@ -296,14 +298,23 @@ export default function TechnicianSignupScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.termsRow} onPress={() => setShowTerms(true)}>
-          <View style={[styles.checkbox, agreed && [styles.checkboxActive, { backgroundColor: colors.success, borderColor: colors.success }]]}>
+        <View style={styles.termsRow}>
+          <TouchableOpacity
+            style={[styles.checkbox, agreed && [styles.checkboxActive, { backgroundColor: colors.success, borderColor: colors.success }]]}
+            onPress={() => setAgreed(!agreed)}
+          >
             {agreed && <Check color="#fff" size={16} />}
-          </View>
+          </TouchableOpacity>
           <Text style={[styles.termsTextSmall, { color: colors.text }]}>
-            أوافق على شروط العمل والعمولة ({COMMISSION_RATE}%)
+            أوافق على{' '}
+            <Text
+              style={{ color: colors.success, fontFamily: 'Cairo-Bold', textDecorationLine: 'underline' }}
+              onPress={() => setShowTerms(true)}
+            >
+              شروط العمل والعمولة ({COMMISSION_RATE}%)
+            </Text>
           </Text>
-        </TouchableOpacity>
+        </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
