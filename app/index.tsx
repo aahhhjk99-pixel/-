@@ -3,19 +3,21 @@ import { Redirect } from 'expo-router';
 import { useAuth } from '@/lib/auth';
 
 export default function Index() {
-  const { session, profile } = useAuth();
+  const { session, profile, loading } = useAuth();
 
-  // 1. إذا كان المستخدم مسجل دخوله مسبقاً، وجهه لصفحته الخاصة حسب نوع الحساب
-  if (session && profile) {
-    if (profile.role === 'admin') {
-      return <Redirect href="/admin" />;
-    }
-    if (profile.role === 'technician') {
-      return <Redirect href="/technician" />;
-    }
+  // إيقاف التوجيه لأجزاء من الثانية حتى تكتمل قراءة الجلسة بدون إظهار أي عجلة
+  if (loading) {
+    return null;
+  }
+
+  // إذا كان المستخدم مسجل دخوله، التوجيه حسب نوع الحساب (مع افتراض زبون كخيار افتراضي)
+  if (session) {
+    const role = profile?.role || 'customer';
+    if (role === 'admin') return <Redirect href="/admin" />;
+    if (role === 'technician') return <Redirect href="/technician" />;
     return <Redirect href="/customer" />;
   }
 
-  // 2. إذا لم يكن مسجل الدخول (أو أول مرة يفتح الرابط)، توجيه مباشر وفوري لصفحة تسجيل الدخول بدون أي عجلة تحميل
+  // إذا لم يكن مسجل الدخول
   return <Redirect href="/login" />;
 }
