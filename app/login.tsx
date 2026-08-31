@@ -63,7 +63,6 @@ export default function LoginScreen() {
         }
       }
 
-      // توجيه دقيق بمسارات سليمة 100% للويب
       if (userRole === 'admin') {
         show('تم تسجيل الدخول كأدمن', 'success');
         router.replace('/admin');
@@ -246,7 +245,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 2,
     borderColor: '#94a3b8',
-    justify.content: 'center',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
