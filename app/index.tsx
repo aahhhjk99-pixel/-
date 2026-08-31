@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import {
   Users, Wrench, ClipboardList, DollarSign, AlertTriangle, TrendingUp,
@@ -17,11 +17,12 @@ import type { Order, Dispute, Profile } from '@/types/database';
 export default function AdminDashboardScreen() {
   const { colors } = useTheme();
   const { show } = useToast();
+  const [authChecking, setAuthChecking] = useState(true);
   const [stats, setStats] = useState({
     totalCustomers: 0, totalTechnicians: 0, verifiedTechs: 0, pendingTechs: 0,
     totalOrders: 0, activeOrders: 0, completedOrders: 0, cancelledOrders: 0,
     totalRevenue: 0, platformCommission: 0, openDisputes: 0,
-  bannedUsers: 0,
+    bannedUsers: 0,
   });
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [pendingTechs, setPendingTechs] = useState<Profile[]>([]);
@@ -88,27 +89,62 @@ export default function AdminDashboardScreen() {
     setRefreshing(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const checkUserRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        router.replace('/(auth)/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profile?.role === 'customer') {
+        router.replace('/(tabs)');
+        return;
+      } else if (profile?.role === 'technician') {
+        router.replace('/(tech)');
+        return;
+      }
+
+      setAuthChecking(false);
+      loadData();
+    };
+
+    checkUserRole();
+  }, [loadData]);
 
   const verifyTech = async (tech: Profile, status: 'approved' | 'rejected') => {
-  const { error } = await supabase
-    .from('profiles')
-    .update({ 
-      verification_status: status,
-      account_status: status === 'approved' ? 'active' : 'rejected'
-    })
-    .eq('id', tech.id);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        verification_status: status,
+        account_status: status === 'approved' ? 'active' : 'rejected'
+      })
+      .eq('id', tech.id);
 
-  if (error) {
-    show('فشل التحديث: ' + error.message, 'error');
-  } else {
-    show(status === 'approved' ? 'تم توثيق الفني وتفعيل حسابه' : 'تم رفض الفني', 'success');
-    loadData();
-  }
+    if (error) {
+      show('فشل التحديث: ' + error.message, 'error');
+    } else {
+      show(status === 'approved' ? 'تم توثيق الفني وتفعيل حسابه' : 'تم رفض الفني', 'success');
+      loadData();
+    }
   };
 
+  if (authChecking) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
         <View style={styles.headerTop}>
