@@ -21,14 +21,15 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setError('');
-    if (!phone.trim() || !password.trim()) {
+    const cleanPhone = phone.trim().replace(/\s+/g, '');
+
+    if (!cleanPhone || !password.trim()) {
       setError('الرجاء إدخال رقم الهاتف وكلمة المرور');
       return;
     }
 
     setLoading(true);
     try {
-      const cleanPhone = phone.trim();
       const email = `${cleanPhone}@services.ly`;
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
