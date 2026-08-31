@@ -94,21 +94,7 @@ export default function AdminDashboardScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        router.replace('/(auth)/login');
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profile?.role === 'customer') {
-        router.replace('/(tabs)');
-        return;
-      } else if (profile?.role === 'technician') {
-        router.replace('/(tech)');
+        router.replace('/login');
         return;
       }
 
@@ -161,15 +147,15 @@ export default function AdminDashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}
       >
         <View style={styles.quickActions}>
-          <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.cardBg, borderColor: colors.border }]} onPress={() => router.push('/admin/users')}>
+          <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.cardBg, borderColor: colors.border }]} onPress={() => router.push('/users')}>
             <Users color={colors.primary} size={22} />
             <Text style={[styles.quickBtnText, { color: colors.text }]}>الحسابات</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.cardBg, borderColor: colors.border }]} onPress={() => router.push('/admin/disputes')}>
+          <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.cardBg, borderColor: colors.border }]} onPress={() => router.push('/disputes')}>
             <AlertTriangle color={colors.error} size={22} />
             <Text style={[styles.quickBtnText, { color: colors.text }]}>النزاعات</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.cardBg, borderColor: colors.border }]} onPress={() => router.push('/admin/support-config')}>
+          <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.cardBg, borderColor: colors.border }]} onPress={() => router.push('/users')}>
             <Settings color={colors.success} size={22} />
             <Text style={[styles.quickBtnText, { color: colors.text }]}>الإعدادات</Text>
           </TouchableOpacity>
@@ -177,36 +163,36 @@ export default function AdminDashboardScreen() {
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>الإحصائيات</Text>
         <View style={styles.statsGrid}>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/admin/users')}>
+          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/users')}>
             <Users color="#2563eb" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.totalCustomers}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>الزبائن</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/admin/users')}>
+          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/users')}>
             <Wrench color="#16a34a" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.totalTechnicians}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>الفنيون</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/admin/users')}>
+          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/users')}>
             <ShieldCheck color="#10b981" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.verifiedTechs}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>موثقون</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/admin/users')}>
+          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/users')}>
             <Clock color="#f59e0b" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.pendingTechs}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>بانتظار التوثيق</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/(tabs)/orders' as any)}>
+          <View style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
             <ClipboardList color="#6366f1" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.totalOrders}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>إجمالي الطلبات</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/(tabs)/orders' as any)}>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
             <TrendingUp color="#3b82f6" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.activeOrders}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>طلبات نشطة</Text>
-          </TouchableOpacity>
+          </View>
           <View style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
             <DollarSign color="#ec4899" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{formatCurrency(stats.totalRevenue)}</Text>
@@ -217,12 +203,12 @@ export default function AdminDashboardScreen() {
             <Text style={[styles.statValue, { color: colors.text }]}>{formatCurrency(stats.platformCommission)}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>عمولة المنصة</Text>
           </View>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/admin/disputes')}>
+          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/disputes')}>
             <AlertTriangle color="#ef4444" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.openDisputes}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>نزاعات مفتوحة</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/admin/users')}>
+          <TouchableOpacity style={[styles.statCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => router.push('/users')}>
             <Shield color="#9ca3af" size={20} />
             <Text style={[styles.statValue, { color: colors.text }]}>{stats.bannedUsers}</Text>
             <Text style={[styles.statLabel, { color: colors.subtext }]}>حسابات محظورة</Text>
@@ -256,7 +242,7 @@ export default function AdminDashboardScreen() {
               <TouchableOpacity
                 key={dispute.id}
                 style={[styles.disputeRow, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
-                onPress={() => router.push(`/dispute/${dispute.id}`)}
+                onPress={() => router.push(`/disputes`)}
               >
                 <AlertTriangle color="#ef4444" size={18} />
                 <View style={{ flex: 1 }}>
@@ -271,10 +257,9 @@ export default function AdminDashboardScreen() {
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>أحدث الطلبات</Text>
         {recentOrders.map((order) => (
-          <TouchableOpacity
+          <View
             key={order.id}
             style={[styles.orderRow, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
-            onPress={() => router.push(`/order/${order.id}`)}
           >
             <View style={[styles.orderDot, { backgroundColor: ORDER_STATUS_COLORS[order.status] }]} />
             <View style={{ flex: 1 }}>
@@ -286,7 +271,7 @@ export default function AdminDashboardScreen() {
             <Text style={[styles.orderStatus, { color: ORDER_STATUS_COLORS[order.status] }]}>
               {ORDER_STATUS_LABELS[order.status]}
             </Text>
-          </TouchableOpacity>
+          </View>
         ))}
       </ScrollView>
     </View>
