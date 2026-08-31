@@ -48,10 +48,10 @@ export default function LoginScreen() {
           await supabase.from('profiles').update({ role: 'admin' }).eq('id', (profileData as any).id);
         }
         show('تم تسجيل الدخول كأدمن', 'success');
-router.replace('/users');
-} else {
-show('تم تسجيل الدخول بنجاح', 'success');
-router.replace('/users');
+        router.replace('/');
+      } else {
+        show('تم تسجيل الدخول بنجاح', 'success');
+        router.replace('/');
       }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء تسجيل الدخول');
@@ -117,9 +117,18 @@ router.replace('/users');
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/(auth)/')} style={styles.signupLink}>
-          <Text style={styles.signupLinkText}>ليس لديك حساب؟ سجل الآن</Text>
-        </TouchableOpacity>
+        <View style={styles.signupContainer}>
+          <Text style={[styles.signupLabel, { color: colors.subtext }]}>ليس لديك حساب؟</Text>
+          <View style={styles.signupLinksRow}>
+            <TouchableOpacity onPress={() => router.push('/customer-signup')} style={styles.signupLinkBtn}>
+              <Text style={styles.signupLinkText}>تسجيل كزبون</Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.subtext }}>|</Text>
+            <TouchableOpacity onPress={() => router.push('/technician-signup')} style={styles.signupLinkBtn}>
+              <Text style={styles.signupLinkText}>تسجيل كفني</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -211,13 +220,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
   },
-  signupLink: {
+  signupContainer: {
     alignItems: 'center',
     paddingVertical: 16,
     marginTop: 8,
   },
+  signupLabel: {
+    fontFamily: 'Cairo-Regular',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  signupLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  signupLinkBtn: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
   signupLinkText: {
-    fontFamily: 'Cairo-Medium',
+    fontFamily: 'Cairo-Bold',
     fontSize: 14,
     color: '#2563eb',
   },
