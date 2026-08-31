@@ -32,7 +32,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const email = `${cleanPhone}@services.ly`;
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -43,22 +43,29 @@ export default function LoginScreen() {
         window.localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
       }
 
-      if (cleanPhone === ADMIN_PHONE) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('phone', cleanPhone)
-          .maybeSingle();
+      // جلب بيانات ملف المستعمل لمعرفة نوع الحساب
+      const userId = authData.user?.id;
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-        if (profileData && (profileData as any).role !== 'admin') {
-          await supabase.from('profiles').update({ role: 'admin' }).eq('id', (profileData as any).id);
+      // التوجيه المباشر حسب نوع الحساب لتفادي الدائرة المغلقة
+      if (cleanPhone === ADMIN_PHONE || profileData?.role === 'admin') {
+        if (profileData && profileData.role !== 'admin') {
+          await supabase.from('profiles').update({ role: 'admin' }).eq('id', profileData.id);
         }
         show('تم تسجيل الدخول كأدمن', 'success');
-        router.replace('/');
+        router.replace('/admin');
+      } else if (profileData?.role === 'technician') {
+        show('تم تسجيل الدخول بنجاح', 'success');
+        router.replace('/(tech)');
       } else {
         show('تم تسجيل الدخول بنجاح', 'success');
-        router.replace('/');
+        router.replace('/(tabs)');
       }
+
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء تسجيل الدخول');
       show('فشل تسجيل الدخول', 'error');
