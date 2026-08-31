@@ -54,9 +54,14 @@ export default function CustomerSignupScreen() {
     setLoading(true);
     try {
       const email = `${cleanPhone}@services.ly`;
+      const redirectUri = typeof window !== 'undefined' ? window.location.origin : 'https://fanek.onrender.com';
+      
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectUri,
+        },
       });
 
       if (authError || !authData?.user) {
