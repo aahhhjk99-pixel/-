@@ -43,22 +43,32 @@ export default function LoginScreen() {
         window.localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
       }
 
-      // جلب بيانات ملف المستعمل لمعرفة نوع الحساب
+      // جلب بيانات ملف المستخدم
       const userId = authData.user?.id;
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      let userRole = 'customer';
 
-      // التوجيه المباشر حسب نوع الحساب لتفادي الدائرة المغلقة
-      if (cleanPhone === ADMIN_PHONE || profileData?.role === 'admin') {
-        if (profileData && profileData.role !== 'admin') {
-          await supabase.from('profiles').update({ role: 'admin' }).eq('id', profileData.id);
+      if (userId) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role, id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (cleanPhone === ADMIN_PHONE) {
+          userRole = 'admin';
+          if (profileData && profileData.role !== 'admin') {
+            await supabase.from('profiles').update({ role: 'admin' }).eq('id', profileData.id);
+          }
+        } else if (profileData?.role) {
+          userRole = profileData.role;
         }
+      }
+
+      // التوجيه المباشر حسب نوع الحساب
+      if (userRole === 'admin') {
         show('تم تسجيل الدخول كأدمن', 'success');
         router.replace('/admin');
-      } else if (profileData?.role === 'technician') {
+      } else if (userRole === 'technician') {
         show('تم تسجيل الدخول بنجاح', 'success');
         router.replace('/(tech)');
       } else {
