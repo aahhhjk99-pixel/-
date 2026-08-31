@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
 import type { Session } from '@supabase/supabase-js';
 
-// تصدير رقم الأدمن بشكل صريح حتى تتمكن الملفات الأخرى من استدعائه
 export const ADMIN_PHONE = '0930656956';
 
 interface AuthContextType {
@@ -47,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let currentProfile = data as Profile;
         const cleanPhone = (userPhone || currentProfile.phone || '').trim();
 
-        // الترقية التلقائية إلى أدمن إذا كان رقم الهاتف هو رقم الأدمن
         if (cleanPhone === ADMIN_PHONE && currentProfile.role !== 'admin') {
           const { data: updatedProfile } = await supabase
             .from('profiles')
@@ -78,19 +76,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, loadProfile]);
 
   useEffect(() => {
-    // 1. جلب الجلسة الحالية عند الفتح
+    let isMounted = true;
+
+    // مؤقت أمان: فك شاشة التحميل تلقائياً بعد 3 ثوانٍ إذا علق الاتصال
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 3000);
+
+    // 1. جلب الجلسة الحالية
     supabase.auth.getSession().then(({ data: { session: initSession } }) => {
+      if (!isMounted) return;
       setSession(initSession);
       if (initSession?.user) {
         const phone = initSession.user.email?.replace('@services.ly', '') || '';
-        loadProfile(initSession.user.id, phone).finally(() => setLoading(false));
+        loadProfile(initSession.user.id, phone).finally(() => {
+          if (isMounted) setLoading(false);
+        });
       } else {
         setLoading(false);
       }
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
 
-    // 2. الاستماع لتغييرات حالة تسجيل الدخول والخروج
+    // 2. الاستماع لتغييرات الحالة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      if (!isMounted) return;
       setSession(currentSession);
       if (currentSession?.user) {
         const phone = currentSession.user.email?.replace('@services.ly', '') || '';
@@ -102,6 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      isMounted = false;
+      clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
   }, [loadProfile]);
